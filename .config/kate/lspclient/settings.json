@@ -1,0 +1,22 @@
+{
+    "servers": {
+        "odin": {
+            "command": [
+                "/home/gonzaloc/odin/ols"
+            ],
+            "filetypes": [
+                "odin"
+            ],
+            "url": "https://github.com/DanielGavin/ols",
+            "root": "%{Project:NativePath}",
+            "highlightingModeRegex": "^Odin$",
+            "initializationOptions": {
+                "odin_command": "/home/gonzaloc/odin/odin",
+                "verbose": true,
+                "enable_document_symbols": true,
+                "enable_hover": true
+            }
+        }
+    }
+}
+
