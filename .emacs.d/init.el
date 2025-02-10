@@ -1,14 +1,22 @@
 
 (add-to-list 'default-frame-alist '(font . "CaskaydiaCove Nerd Font Mono-18"))
 
-(menu-bar-mode 1)
-(tool-bar-mode 1)
+(menu-bar-mode 0)
+(tool-bar-mode 0)
 (scroll-bar-mode 0)
 (global-display-line-numbers-mode 1)
 (show-paren-mode 1)
 (electric-pair-mode 1)
+(cua-mode 1)
 (add-hook 'text-mode-hook 'visual-line-mode)
-(add-hook 'after-init-hook 'global-company-mode)
+;;(add-hook 'after-init-hook 'global-company-mode)
+(load-theme 'gruber-darker t)
+
+; Ido
+(require 'ido)
+(ido-mode t)
+(ido-everywhere 1)
+
 
 (setq shell-file-name "/usr/bin/fish")
 (setq explicit-shell-file-name "/usr/bin/fish")
@@ -88,8 +96,11 @@
 ;;(use-package evil :ensure t :demand t)
 
 
-;; Doom-themes
+; Doom-themes
 (elpaca doom-themes)
+
+(elpaca 'gruber-darker-theme)
+
 (elpaca auto-complete)
 
 ;;Turns off elpaca-use-package-mode current declaration
@@ -109,6 +120,23 @@
   :ensure t
   :bind ("C-x g" . magit-status))
 
+(use-package base16-theme
+  :ensure t)
+(use-package ample-theme
+  :ensure t)
+
+; Multiple Cursors 
+(elpaca 'multiple-cursors)
+(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+(global-set-key (kbd "C->")         'mc/mark-next-like-this)
+(global-set-key (kbd "C-<")         'mc/mark-previous-like-this)
+(global-set-key (kbd "C-c C-<")     'mc/mark-all-like-this)
+(global-set-key (kbd "C-\"")        'mc/skip-to-next-like-this)
+(global-set-key (kbd "C-:")         'mc/skip-to-previous-like-this)
+
+;(elpaca 'smex)
+;(global-set-key (kbd "M-x")
+;(global-set-key (kbd "C-c C-c M-x")
 
 (load-file "~/.emacs.d/treesiter/odin-ts-mode/odin-ts-mode.el")
 
