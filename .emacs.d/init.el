@@ -1,156 +1,151 @@
-
-(add-to-list 'default-frame-alist '(font . "CaskaydiaCove Nerd Font Mono-18"))
-
+;; Configuraciónes basicas
 (menu-bar-mode 0)
 (tool-bar-mode 0)
 (scroll-bar-mode 0)
+(column-number-mode 1)
 (global-display-line-numbers-mode 1)
 (show-paren-mode 1)
 (electric-pair-mode 1)
+(auto-fill-mode t)
 (cua-mode 1)
-(add-hook 'text-mode-hook 'visual-line-mode)
-;;(add-hook 'after-init-hook 'global-company-mode)
-(load-theme 'gruber-darker t)
+(set-frame-font "CaskaydiaCove Nerd Font Mono-18" nil t)
+(setq-default tab-width 4)
+(setq-default indent-tabs-mode nil)
+(setq whitespace-style '(face spaces tabs space-mark tab-mark))
+(setq whitespace-display-mappings
+      '(
+        (space-mark 32 [183] [46])  ; 32 SPACE, 183 MIDDLE DOT '·', 46 FULL STOP '.'
+        (tab-mark 9 [9655 9] [92 9]) ; 9 TAB, 9655 WHITE
+                                     ; RIGHT-POINTING TRIANGLE '▷', 92
+                                        ; BACKSLASH '\'
+        ))
+(global-whitespace-mode 1)
 
-; Ido
+
+;; straight.el
+(setq package-enable-at-startup nil)
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name
+        "straight/repos/straight.el/bootstrap.el"
+        (or (bound-and-true-p straight-base-dir)
+            user-emacs-directory)))
+      (bootstrap-version 7))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+(straight-use-package 'use-package)
+(setq straight-use-package-by-default t)
+(eval-when-compile
+  (require 'use-package))
+
+;; Temas locales
+(setq custom-safe-themes t)
+(use-package emacs
+  :straight nil
+  :load-path "themes/"
+  :init
+  (add-to-list 'custom-theme-load-path (expand-file-name "~/.emacs.d/themes/"))
+  :config
+  (load-theme 'gruber-darker t))
+
+
+;; Ido
 (require 'ido)
 (ido-mode t)
 (ido-everywhere 1)
 
 
-(setq shell-file-name "/usr/bin/fish")
-(setq explicit-shell-file-name "/usr/bin/fish")
-(add-to-list 'exec-path "/home/gonzaloc/.odin/")
-
-(setq-default tab-width 4)
-(setq-default indent-tabs-mode nil)
-
-
-(setq whitespace-style '(face spaces tabs space-mark tab-mark))
-(setq whitespace-display-mappings
-      '(
-        (space-mark 32 [183] [46])  ; 32 SPACE, 183 MIDDLE DOT '·', 46 FULL STOP '.'
-        (tab-mark 9 [9655 9] [92 9]) ; 9 TAB, 9655 WHITE RIGHT-POINTING TRIANGLE '▷', 92 BACKSLASH '\'
-        ))
-(global-whitespace-mode 1)
-
-(defvar elpaca-installer-version 0.9)
-(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
-(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
-(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil :depth 1
-                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                              :build (:not elpaca--activate-package)))
-(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
-       (build (expand-file-name "elpaca/" elpaca-builds-directory))
-       (order (cdr elpaca-order))
-       (default-directory repo))
-  (add-to-list 'load-path (if (file-exists-p build) build repo))
-  (unless (file-exists-p repo)
-    (make-directory repo t)
-    (when (< emacs-major-version 28) (require 'subr-x))
-    (condition-case-unless-debug err
-        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                  ,@(when-let* ((depth (plist-get order :depth)))
-                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
-                                                  ,(plist-get order :repo) ,repo))))
-                  ((zerop (call-process "git" nil buffer t "checkout"
-                                        (or (plist-get order :ref) "--"))))
-                  (emacs (concat invocation-directory invocation-name))
-                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                  ((require 'elpaca))
-                  ((elpaca-generate-autoloads "elpaca" repo)))
-            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-          (error "%s" (with-current-buffer buffer (buffer-string))))
-      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
-  (unless (require 'elpaca-autoloads nil t)
-    (require 'elpaca)
-    (elpaca-generate-autoloads "elpaca" repo)
-    (load "./elpaca-autoloads")))
-(add-hook 'after-init-hook #'elpaca-process-queues)
-(elpaca `(,@elpaca-order))
-
-;; Install a package via the elpaca macro
-;; See the "recipes" section of the manual for more details.
-
-;; (elpaca example-package)
-
-(elpaca (transient :host github :repo "magit/transient"))
-
-
-;; Install use-package support
-(elpaca elpaca-use-package
-  ;; Enable use-package :ensure support for Elpaca.
-  (elpaca-use-package-mode))
-
-;;When installing a package used in the init file itself,
-;;e.g. a package which adds a use-package key word,
-;;use the :wait recipe keyword to block until that package is installed/configured.
-;;For example:
-;;(use-package general :ensure (:wait t) :demand t)
-
-;; Expands to: (elpaca evil (use-package evil :demand t))
-;;(use-package evil :ensure t :demand t)
-
-
-; Doom-themes
-(elpaca doom-themes)
-
-(elpaca 'gruber-darker-theme)
-
-(elpaca auto-complete)
-
-;;Turns off elpaca-use-package-mode current declaration
-;;Note this will cause evaluate the declaration immediately. It is not deferred.
-;;Useful for configuring built-in emacs features.
-(use-package emacs :ensure nil :config (setq ring-bell-function #'ignore))
-
-(use-package company :ensure t :config (add-hook 'after-init-hook 'global-company-mode))
-
-(use-package exec-path-from-shell
+;; Company
+(use-package company
   :ensure t
-  :config
-  (when (memq window-system '(mac ns x))
-    (exec-path-from-shell-initialize)))
+  :config (add-hook 'after-init-hook 'global-company-mode))
 
+
+;; Magit
 (use-package magit
   :ensure t
   :bind ("C-x g" . magit-status))
 
-(use-package base16-theme
+
+;; Org-mode
+(use-package org
+  :custom
+  (org-todo-keywords
+   '((sequence "TODO(t)" "|" "DONE(d)")
+     (sequence  "BUG(b)" "KNOWNCAUSE(k)" "|" "FIXED(f)")
+     (sequence "|" "CANCELED(c)"" NOOPTIONS(n)")))
+  :custom-face
+  (org-level-1 ((t (:inherit outline-1 :height 1.25))))
+  (org-level-2 ((t (:inherit outline-2 :height 1.2))))
+  (org-level-3 ((t (:inherit outline-3 :height 1.1))))
+  :hook
+  (org-mode . org-indent-mode)
+  :bind ("C-c a". org-agenda))
+(use-package org-bullets
+  :ensure t
+  :hook (org-mode . org-bullets-mode)
+  :custom
+  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+;; Wich-hey
+(use-package which-key
+  :init (which-key-mode)
+  :diminish which-key-mode
+  :config
+  (setq which-key-idle-delay 1))
+
+
+;; Projectile
+(use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :init
+  (when (file-directory-p "~/projects")
+    (setq projectile-project-search-path '("~/projects")))
+  (setq projectile-switch-project-action #'projectile-dired))
+
+
+;; Icons
+(use-package all-the-icons
   :ensure t)
-(use-package ample-theme
+(use-package nerd-icons
   :ensure t)
 
-; Multiple Cursors 
-(elpaca 'multiple-cursors)
-(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
-(global-set-key (kbd "C->")         'mc/mark-next-like-this)
-(global-set-key (kbd "C-<")         'mc/mark-previous-like-this)
-(global-set-key (kbd "C-c C-<")     'mc/mark-all-like-this)
-(global-set-key (kbd "C-\"")        'mc/skip-to-next-like-this)
-(global-set-key (kbd "C-:")         'mc/skip-to-previous-like-this)
 
-;(elpaca 'smex)
-;(global-set-key (kbd "M-x")
-;(global-set-key (kbd "C-c C-c M-x")
+;; Ver imagenes desde links
+(use-package uimage
+  :ensure t
+  :diminish
+  :custom 
+  (org-startup-with-inline-images t)
+  :hook
+  (org-mode . uimage-mode))
 
+
+;; Multi-cursores
+(use-package multiple-cursors
+  :ensure t
+  :config
+          (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+          (global-set-key (kbd "C->")         'mc/mark-next-like-this)
+          (global-set-key (kbd "C-<")         'mc/mark-previous-like-this)
+          (global-set-key (kbd "C-c C-<")     'mc/mark-all-like-this)
+          (global-set-key (kbd "C-\"")        'mc/skip-to-next-like-this)
+          (global-set-key (kbd "C-:")         'mc/skip-to-previous-like-this))
+
+
+;; Odin-mode
 (load-file "~/.emacs.d/treesiter/odin-ts-mode/odin-ts-mode.el")
-
 (setq treesit-language-source-alist
   '((odin "https://github.com/tree-sitter-grammars/tree-sitter-odin")))
-
-;;(use-package odin-ts-mode
-;;  :ensure (local :repo "~/.emacs.d/treesiter/odin-ts-mode/")
-;;  :mode ("\\.odin\\'" . odin-ts-mode))
-
 (with-eval-after-load 'eglot
   (add-to-list 'eglot-server-programs '((odin-mode odin-ts-mode) . ("~/.odin/ols"))))
-
 (add-hook 'odin-ts-mode-hook #'eglot-ensure)
-
-(setq custom-file (expand-file-name "customs.el" user-emacs-directory))
-(add-hook 'elpaca-after-init-hook (lambda () (load custom-file 'noerror)))
