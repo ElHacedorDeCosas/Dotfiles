@@ -9,10 +9,10 @@
 (show-paren-mode 1)
 (electric-pair-mode 1)
 (auto-fill-mode t)
-(cua-mode 1)
+(cua-mode 0)
 (set-frame-font "CaskaydiaCove Nerd Font Mono-18" nil t)
 (setq-default tab-width 4)
-(setq-default indent-tabs-mode nil)
+(setq-default indent-tabs-mode t)
 (setq whitespace-style '(face spaces tabs space-mark tab-mark))
 (setq whitespace-display-mappings
       '(
@@ -21,23 +21,28 @@
                                      ; RIGHT-POINTING TRIANGLE '▷', 92
                                         ; BACKSLASH '\'
         ))
-(global-whitespace-mode 1)
+(global-whitespace-mode nil)
 (electric-indent-mode 1)
 
+;;; Bloqueo de flechas
+;;(global-set-key (kbd "<left>") 'ignore)
+;;(global-set-key (kbd "<right>") 'ignore)
+;;(global-set-key (kbd "<up>") 'ignore)
+;;(global-set-key (kbd "<down>") 'ignore)
 
 ;;; Combinaciones de teclado generales
 (global-set-key (kbd "C-c i") 'eval-buffer)
 (global-set-key (kbd "C-c c") 'compile)
 (global-set-key (kbd "C-c s") 'shell)
 (global-set-key (kbd "C-c C-s") 'shell-command)
-(global-set-key (kbd "C-z") 'undo-redo)
+(global-set-key (kbd "C-c z") 'undo-redo)
 
 
 ;;; Ventanas
-(global-set-key (kbd "C-c <left>")  'windmove-left)
-(global-set-key (kbd "C-c <right>") 'windmove-right)
-(global-set-key (kbd "C-c <up>")    'windmove-up)
-(global-set-key (kbd "C-c <down>")  'windmove-down)
+(global-set-key (kbd "C-c C-j")  'windmove-left)
+(global-set-key (kbd "C-c C-l") 'windmove-right)
+(global-set-key (kbd "C-c C-i")    'windmove-up)
+(global-set-key (kbd "C-c C-k")  'windmove-down)
 
 
 ;;; straight.el
